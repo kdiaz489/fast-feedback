@@ -11,25 +11,59 @@ import {
   FormLabel,
   Input,
   useDisclosure,
-  Button
+  Button,
+  useToast
 } from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
 import { createSite } from '@/lib/db';
-const AddSiteModal = () => {
+import { useAuth } from '@/lib/auth';
+import { mutate } from 'swr';
+
+const AddSiteModal = ({ children }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { register, handleSubmit } = useForm();
   const initialRef = useRef();
   const finalRef = useRef();
+  const toast = useToast();
+  const auth = useAuth();
 
-  const onSubmit = (values) => {
-    console.log(values);
-    createSite(values);
+  const onSubmit = ({ name, url }) => {
+    let newSite = {
+      authorId: auth.user.uid,
+      createdAt: new Date().toISOString(),
+      name,
+      url
+    };
+    createSite(newSite);
+
+    toast({
+      title: 'Site Created',
+      description: 'Your site has been successfully created!',
+      status: 'success',
+      duration: 9000,
+      isClosable: true
+    });
+    mutate(
+      '/api/sites',
+      async (data) => {
+        return { sites: [...data.sites, newSite] };
+      },
+      false
+    );
+    onClose();
   };
 
   return (
     <>
-      <Button onClick={onOpen} fontWeight="medium" maxW="200px">
-        Add your first site
+      <Button
+        onClick={onOpen}
+        backgroundColor="gray.900"
+        color="white"
+        fontWeight="medium"
+        _hover={{ bg: 'gray.700' }}
+        _active={{ bg: 'gray.800', transform: 'scale(0.95)' }}
+      >
+        {children}
       </Button>
 
       <Modal
@@ -48,7 +82,7 @@ const AddSiteModal = () => {
               <Input
                 ref={initialRef}
                 placeholder="My Site"
-                name="site"
+                name="name"
                 ref={register({ required: 'Required' })}
               />
             </FormControl>
@@ -57,7 +91,7 @@ const AddSiteModal = () => {
               <FormLabel>Link</FormLabel>
               <Input
                 placeholder="https://website.com"
-                name="link"
+                name="url"
                 ref={register({ required: 'Required' })}
               />
             </FormControl>
