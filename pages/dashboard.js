@@ -10,9 +10,13 @@ import { FastFeedbackIcon } from 'public/icons';
 import useSWR from 'swr';
 import SiteTableHeader from '../components/SiteTableHeader';
 const Dashboard = () => {
-  const auth = useAuth();
-  const { data, error } = useSWR('/api/sites', fetcher);
+  const { user } = useAuth();
 
+  const { data, error } = useSWR(
+    user ? ['/api/sites', user.token] : null,
+    fetcher
+  );
+  console.log(data);
   if (!data) {
     return (
       <DashboardShell>

@@ -14,7 +14,15 @@ const Home = () => {
       h="100vh"
     >
       <Head>
-        <title>Fast Feedback</title>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (document.cookie && document.cookie.includes('auth')) {
+                window.location.href = "/dashboard"
+              }
+            `
+          }}
+        />
       </Head>
 
       <FastFeedbackIcon color="black.500" boxSize="32px" />
